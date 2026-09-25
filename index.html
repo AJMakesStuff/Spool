@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#172b27"><title>Spool — Filament Studio</title>
+  <link rel="stylesheet" href="styles.css"><script src="data.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#inventory"><span class="brand-mark">s</span> spool<span class="brand-dot">.</span></a>
+    <div class="workspace"><span class="workspace-icon">▧</span><div>My print studio<small>PERSONAL WORKSPACE</small></div></div>
+    <p class="nav-label">WORKSPACE</p>
+    <nav aria-label="Main navigation">
+      <button class="nav-item active" data-page="inventory"><span>▦</span> Filament inventory <b id="nav-count">0</b></button>
+      <button class="nav-item" data-page="history"><span>◷</span> Print history</button>
+    </nav>
+    <div class="sidebar-bottom"><div class="local-badge"><i></i> Shared server storage</div><p>One collection. Every device.</p><button id="export-btn" class="sidebar-action">↗ &nbsp; Export backup</button><button id="import-btn" class="sidebar-action">↙ &nbsp; Import backup</button><input type="file" id="import-file" accept="application/json,.json" hidden></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong id="breadcrumb">Filament inventory</strong></span><span class="studio-tag"><i></i> READY TO CREATE</span></header>
+    <div class="content">
+      <section class="page-heading"><div><p class="eyebrow">A LITTLE ORDER. MORE MAKING.</p><h1 id="page-title">Your filament, in focus<span>.</span></h1><p id="page-subtitle">Know what’s on hand. Make room for your next idea.</p></div><button class="button primary" id="add-spool">＋ <span>Add filament</span></button></section>
+      <div id="storage-warning" class="warning" hidden>Connecting to shared inventory…</div>
+      <section class="stats" aria-label="Inventory summary">
+        <article class="stat"><span class="stat-icon">▧</span><p>Total spools</p><div id="stat-count">0 <small>spools</small></div><span class="stat-caption">In your collection</span></article>
+        <article class="stat"><span class="stat-icon">◉</span><p>Filament remaining</p><div id="stat-weight">0 <small>kg</small></div><span class="stat-caption">Ready for your next print</span></article>
+        <article class="stat"><span class="stat-icon">↘</span><p>Low on filament</p><div id="stat-low">0 <small>spools</small></div><span class="stat-caption">At or below 20% remaining</span></article>
+        <article class="stat"><span class="stat-icon">✓</span><p>Prints logged</p><div id="stat-prints">0 <small>prints</small></div><span class="stat-caption" id="stat-used">0 g put to good use</span></article>
+      </section>
+      <section id="inventory-page">
+        <div class="section-heading"><h2>Filament library <span id="library-count">0</span></h2><div class="view-label">▦ &nbsp; Collection view</div></div>
+        <div class="toolbar"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search filament, brand, or location…" aria-label="Search filament"></label><select id="material-filter" aria-label="Filter material"><option value="">All materials</option></select><select id="stock-filter" aria-label="Filter stock"><option value="">All stock levels</option><option value="healthy">In stock</option><option value="low">Low stock</option><option value="empty">Empty</option></select><select id="sort" aria-label="Sort inventory"><option value="newest">Newest first</option><option value="name">Name A–Z</option><option value="remaining">Least remaining</option></select></div>
+        <div id="spool-grid" class="spool-grid"></div>
+        <div id="empty-state" class="empty-state" hidden><div class="empty-icon">◎</div><h2>Your next idea starts with a spool.</h2><p>Add your first filament to start building your collection.</p><button class="button primary" id="empty-add">＋ Add your first filament</button><button class="text-button" id="load-demo">Just exploring? Try sample inventory</button></div>
+        <div id="no-results" class="empty-state" hidden><div class="empty-icon">⌕</div><h2>No matching filament</h2><p>Try another search or clear your filters.</p><button class="button secondary" id="clear-filters">Clear filters</button></div>
+      </section>
+      <section id="history-page" hidden><div class="section-heading"><h2>Print history <span id="history-count">0</span></h2><p>Every gram, accounted for.</p></div><div id="history-list"></div></section>
+      <footer><span>Made for the things you’ll make.</span><span>SPOOL / FILAMENT STUDIO</span></footer>
+    </div>
+  </main>
+  <dialog id="spool-dialog"><form id="spool-form"><div class="dialog-heading"><div><p class="eyebrow">YOUR COLLECTION</p><h2 id="spool-dialog-title">Add filament</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><input id="spool-id" type="hidden">
+    <div class="form-grid"><label class="full">Filament name<input name="name" required maxlength="80" placeholder="e.g. Matte Forest Green"></label><label>Brand<select id="brand-select" name="brand" required><option value="">Select a brand</option></select></label><label id="custom-brand-field" hidden>Custom brand<input id="custom-brand" name="customBrand" maxlength="60" placeholder="Enter brand name" disabled></label><label>Material<select name="material" required></select></label><label>Color name<input name="colorName" required maxlength="40" placeholder="e.g. Forest green"></label><label for="spool-color">Spool color (Hex)<span class="hex-color-control"><input id="color-preview" class="hex-color-preview" type="color" value="#527b65" aria-label="Choose spool color" title="Click to choose a color"><input id="spool-color" type="text" name="color" value="#527b65" required pattern="#[0-9a-fA-F]{6}" maxlength="7" placeholder="#527b65" title="Enter # followed by six hexadecimal characters, e.g. #527b65" spellcheck="false" autocapitalize="off" aria-describedby="color-help"></span><small id="color-help">Enter a Hex code or click the swatch to choose a color.</small></label><label>Original filament (g)<input type="number" name="total" min="1" max="100000" step="0.1" value="1000" required></label><label>Remaining filament (g)<input type="number" name="remaining" min="0" max="100000" step="0.1" value="1000" required></label><fieldset class="full weight-measurement"><legend>Update from a scale</legend><p>Weigh the spool with filament, then subtract the empty spool weight.</p><div class="form-grid"><label>Measured weight (g)<input type="number" name="measuredWeight" min="0" max="200000" step="0.1" placeholder="Spool + filament"></label><label>Empty spool weight (g)<input type="number" name="emptySpoolWeight" min="0" max="100000" step="0.1" placeholder="e.g. 250"></label></div><p id="measurement-preview" aria-live="polite">Optional. Leave measured weight blank to keep the remaining weight above.</p><p id="last-measurement" hidden></p></fieldset><label>Diameter<select name="diameter"><option value="1.75">1.75 mm</option><option value="2.85">2.85 mm</option><option value="3">3.00 mm</option></select></label><label>Storage location<input name="location" maxlength="60" placeholder="e.g. Dry box A"></label><label class="full">Notes <span class="optional">(optional)</span><textarea name="notes" maxlength="1000" rows="2" placeholder="Print settings, drying notes, or anything useful…"></textarea></label></div><p class="form-error" id="spool-error" role="alert"></p><div class="dialog-footer"><button class="button secondary close-dialog" type="button">Cancel</button><button class="button primary" type="submit">Save filament</button></div>
+  </form></dialog>
+  <dialog id="usage-dialog"><form id="usage-form"><div class="dialog-heading"><div><p class="eyebrow">MAKE SOMETHING GREAT</p><h2>Log a print</h2></div><button type="button" class="icon-button close-dialog" aria-label="Close">×</button></div><p id="usage-summary" class="usage-summary"></p><input id="usage-spool-id" type="hidden"><div class="form-grid"><label class="full">Print name<input name="name" required maxlength="100" placeholder="e.g. Desk organizer"></label><label>Filament used (g)<input name="grams" type="number" min="0.1" step="0.1" required placeholder="85"></label><label>Print date<input name="date" type="date" required></label><label class="full">Notes <span class="optional">(optional)</span><textarea name="notes" maxlength="1000" rows="3" placeholder="How did it turn out?"></textarea></label></div><p class="form-error" id="usage-error" role="alert"></p><div class="dialog-footer"><button type="button" class="button secondary close-dialog">Cancel</button><button class="button primary" type="submit">Log print & update spool</button></div></form></dialog>
+  <dialog id="confirm-dialog"><form method="dialog"><div class="dialog-heading"><h2 id="confirm-title"></h2></div><p id="confirm-message"></p><div class="dialog-footer"><button class="button secondary" value="cancel">Cancel</button><button id="confirm-accept" class="button primary" value="confirm">Confirm</button></div></form></dialog>
+  <div id="toast" role="status" class="toast" hidden></div>
+</body></html>
+
+
+
+
+

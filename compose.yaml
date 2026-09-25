@@ -1,0 +1,11 @@
+services:
+  spool:
+    build: .
+    ports:
+      - "3000:8080"
+    restart: unless-stopped
+    volumes:
+      - spool-data:/data
+
+volumes:
+  spool-data:
