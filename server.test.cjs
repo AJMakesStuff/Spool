@@ -28,6 +28,9 @@ test('shared inventory persists across server restarts and competing edits canno
     assert.equal((await put(running.url, 1, { ...inventory, spools: [{ ...spool, remaining: -1 }] })).status, 400);
     assert.equal((await fetch(running.url + '/data/inventory.json')).status, 404);
     assert.equal((await fetch(running.url + '/data.js')).status, 200);
+    const icon = await fetch(running.url + '/icon.svg');
+    assert.equal(icon.status, 200);
+    assert.match(icon.headers.get('content-type'), /^image\/svg\+xml/);
     assert.equal((await fetch(running.url + '/health')).status, 200);
     assert.equal((await fetch(running.url + '/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json', Origin: 'http://other.example' }, body: JSON.stringify({ revision: 1, data: inventory }) })).status, 403);
   } finally { if (running) await stop(running.server); fs.rmSync(dir, { recursive: true, force: true }); }

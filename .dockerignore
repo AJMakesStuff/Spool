@@ -1,6 +1,7 @@
 **
 !Dockerfile
 !index.html
+!icon.svg
 !styles.css
 !app.js
 !data.js

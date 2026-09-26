@@ -1,7 +1,7 @@
 FROM node:22-alpine
 
 WORKDIR /app
-COPY index.html styles.css app.js data.js server.cjs ./
+COPY index.html icon.svg styles.css app.js data.js server.cjs ./
 RUN mkdir /data && chown node:node /data
 ENV DATA_DIR=/data
 ENV PORT=8080

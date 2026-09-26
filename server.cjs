@@ -13,7 +13,7 @@ function createServer(dataDir = process.env.DATA_DIR || path.join(__dirname, 'da
     validateData(current.data);
     if (!Number.isSafeInteger(current.revision) || current.revision < 0) throw Error('Invalid saved revision. Restore a valid volume backup.');
   }
-  const assets = { '/': ['index.html', 'text/html'], '/index.html': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/data.js': ['data.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'] };
+  const assets = { '/': ['index.html', 'text/html'], '/index.html': ['index.html', 'text/html'], '/icon.svg': ['icon.svg', 'image/svg+xml'], '/app.js': ['app.js', 'text/javascript'], '/data.js': ['data.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'] };
   function reply(res, status, body) { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); }
   return http.createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
