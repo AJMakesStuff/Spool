@@ -20,7 +20,7 @@ function storageWarning(message) {
 }
 function lockControls() {
   document.querySelectorAll('button, input, select, textarea').forEach(control => {
-    if (saving || loading || revision === null) {
+    if (saving || revision === null) {
       if (!control.hasAttribute('data-storage-lock')) { control.dataset.storageLock = String(control.disabled); control.disabled = true; }
     } else if (control.hasAttribute('data-storage-lock')) {
       control.disabled = control.dataset.storageLock === 'true'; delete control.dataset.storageLock;
@@ -29,18 +29,23 @@ function lockControls() {
 }
 async function refreshState() {
   if (loading || saving || document.querySelector('dialog[open]')) return;
+  const refreshRevision = revision;
   loading = true; lockControls();
   try {
     const response = await fetch('/api/state', { cache: 'no-store' });
     if (!response.ok) throw Error('Unable to load shared inventory. Check the server connection.');
     const result = await response.json();
-    state = validateData(result.data); revision = result.revision; committed = JSON.stringify(state);
-    render(); storageWarning('');
+    if (saving || revision !== refreshRevision) return;
+    if (result.revision !== revision) {
+      state = validateData(result.data); revision = result.revision; committed = JSON.stringify(state);
+      render();
+    }
+    storageWarning('');
   } catch (error) { storageWarning(error.message); }
   finally { loading = false; lockControls(); }
 }
 async function save() {
-  if (saving || loading || revision === null) { state = JSON.parse(committed); return false; }
+  if (saving || revision === null) { state = JSON.parse(committed); return false; }
   saving = true; lockControls();
   try {
     const response = await fetch('/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ revision, data: state }) });

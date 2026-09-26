@@ -32,7 +32,7 @@ Port 3000 is available on the PC's network interfaces. On another device on the 
 
 ### Shared storage
 
-Inventory and print history are stored in `/data/inventory.json` inside the named Docker volume `spool-data` (Compose prefixes the volume name with the project name). Every browser connecting to this server uses the same collection. Open pages refresh every five seconds when a dialog is not being edited. If two browsers edit the same inventory version, the second save is rejected and must be retried after refreshing, preventing silent overwrites.
+Inventory and print history are stored in `/data/inventory.json` inside the named Docker volume `spool-data` (Compose prefixes the volume name with the project name). Every browser connecting to this server uses the same collection. Open pages check for changes every five seconds when a dialog is not being edited, and update only when the shared inventory has changed. If two browsers edit the same inventory version, the second save is rejected and must be retried after refreshing, preventing silent overwrites.
 
 Rebuilding the image or running `docker compose down` preserves the volume. **Do not use `docker compose down -v` unless you intend to delete the inventory.** Keep the same Compose project name/folder to reuse the same volume. Export backups regularly; importing a backup replaces the shared inventory for everyone.
 

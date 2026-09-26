@@ -62,6 +62,12 @@ test('a stale browser does not overwrite newer server data', async () => {
   const a = await app(); a.conflict(); await a.node('#load-demo').handlers.click();
   assert.equal(a.run('state.spools.length'), 0); assert.equal(a.run('revision'), null);
 });
+test('unchanged background refresh does not rebuild the page', async () => {
+  const a = await app();
+  a.run('renderCount = 0; render = () => renderCount++');
+  await a.run('refreshState()');
+  assert.equal(a.run('renderCount'), 0);
+});
 test('new spool validates starting weight before saving', async () => {
   const a = await app(); const data = { name: 'My spool', brand: 'Brand', material: 'PLA', colorName: 'Green', color: '#527b65', total: '1000', remaining: '1200', diameter: '1.75', location: 'Shelf', notes: '' };
   const submit = () => a.node('#spool-form').handlers.submit({ preventDefault() { }, target: { data } });
