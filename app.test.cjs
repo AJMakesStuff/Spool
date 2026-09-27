@@ -31,6 +31,48 @@ async function app(saved) {
   await new Promise(resolve => setImmediate(resolve));
   return { node, storage, run: code => vm.runInContext(code, context), failSave: () => failSave = true, conflict: () => conflict = true };
 }
+test('filament clicks open a read-only summary with usage and empty-stock handling', async () => {
+  const a = await app(); await a.node('#load-demo').handlers.click();
+  let opened = 0;
+  a.node('#summary-dialog').showModal = () => opened++;
+  a.run("state.spools[0].notes = '<b>Keep dry</b>'; state.prints = [{spoolId: state.spools[0].id, grams: 25}]");
+  const id = a.run('state.spools[0].id');
+  const before = a.run('JSON.stringify(state)');
+  await a.node('#spool-grid').handlers.click({ target: { closest: selector => selector === '[data-spool-id]' ? { dataset: { spoolId: id } } : null } });
+  assert.equal(opened, 1);
+  assert.equal(a.node('#summary-title').textContent, 'Matte Forest Green');
+  assert.match(a.node('#summary-content').innerHTML, /760 g remaining/);
+  assert.match(a.node('#summary-content').innerHTML, /25 g/);
+  assert.match(a.node('#summary-content').innerHTML, /&lt;b&gt;Keep dry&lt;\/b&gt;/);
+  assert.equal(a.run('JSON.stringify(state)'), before);
+  a.run('state.spools[0].remaining = 0; openSummary(state.spools[0].id)');
+  assert.equal(a.node('#summary-log').disabled, true);
+  assert.match(a.node('#summary-content').innerHTML, /Empty spool/);
+  await a.node('#spool-grid').handlers.click({ target: { closest: () => ({ dataset: { action: 'summary', id } }) } });
+  assert.equal(opened, 3);
+});
+
+test('backdrop dismissal cancels dialogs without closing on content clicks or drags', async () => {
+  const a = await app();
+  const dialog = a.node('#confirm-dialog');
+  const closed = [];
+  dialog.close = value => closed.push(value);
+  dialog.getBoundingClientRect = () => ({ left: 100, right: 400, top: 100, bottom: 400 });
+  a.run("dismissOnBackdrop(document.querySelector('#confirm-dialog'))");
+  const outside = { target: dialog, clientX: 50, clientY: 200 };
+  const inside = { target: dialog, clientX: 150, clientY: 200 };
+  dialog.handlers.pointerdown(inside); dialog.handlers.click(inside);
+  dialog.handlers.pointerdown(inside); dialog.handlers.click(outside);
+  dialog.handlers.pointerdown(outside); dialog.handlers.click(inside);
+  assert.deepEqual(closed, []);
+  dialog.handlers.pointerdown(outside); dialog.handlers.click(outside);
+  assert.deepEqual(closed, ['cancel']);
+  dialog.handlers.pointerdown(outside); dialog.handlers.pointercancel(); dialog.handlers.click(outside);
+  a.run('saving = true');
+  dialog.handlers.pointerdown(outside); dialog.handlers.click(outside);
+  assert.deepEqual(closed, ['cancel']);
+});
+
 test('sample inventory persists and filters by name and material', async () => {
   const a = await app(); await a.node('#load-demo').handlers.click();
   assert.equal(JSON.parse(a.storage.get('spool-studio-v1')).spools.length, 6);

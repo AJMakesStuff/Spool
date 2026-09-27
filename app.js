@@ -110,8 +110,43 @@ function renderInventory() {
   $('#no-results').hidden = state.spools.length === 0 || spools.length !== 0;
   $('#spool-grid').innerHTML = spools.map(s => {
     const percent = Math.round(s.remaining / s.total * 100), low = s.remaining / s.total <= .2;
-    return `<article class="spool-card" style="--spool-color:${s.color}"><div class="spool-visual"><span class="material-badge">${escapeHtml(s.material)}</span>${low ? `<span class="stock-badge">${s.remaining === 0 ? 'Empty spool' : '↘ Low stock'}</span>` : ''}<div class="spool-art" aria-hidden="true"></div></div><div class="card-body"><p class="card-brand">${escapeHtml(s.brand)}<span class="list-material">${escapeHtml(s.material)}</span></p><h3 title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</h3><div class="card-meta"><span class="color-dot"></span>${escapeHtml(s.colorName)} <span>·</span> ${escapeHtml(s.diameter)} mm</div><div class="remaining-label"><strong>${format(s.remaining)} <small>/ ${format(s.total)} g</small></strong><span>${percent}% left</span></div><div class="progress ${low ? 'low' : ''}" role="meter" aria-label="Filament remaining" aria-valuemin="0" aria-valuemax="${s.total}" aria-valuenow="${s.remaining}"><span style="width:${percent}%"></span></div><p class="card-location">⌑ &nbsp;${escapeHtml(s.location || 'No location set')}</p><div class="card-actions"><button class="button" data-action="log" data-id="${escapeHtml(s.id)}" ${s.remaining <= 0 ? 'disabled' : ''}>＋ Log print</button><button class="icon-button" data-action="edit" data-id="${escapeHtml(s.id)}" title="Edit filament" aria-label="Edit ${escapeHtml(s.name)}">✎</button><button class="icon-button" data-action="delete" data-id="${escapeHtml(s.id)}" title="Delete filament" aria-label="Delete ${escapeHtml(s.name)}">×</button></div></div></article>`;
+    return `<article class="spool-card" data-spool-id="${escapeHtml(s.id)}" style="--spool-color:${s.color}"><div class="spool-visual"><span class="material-badge">${escapeHtml(s.material)}</span>${low ? `<span class="stock-badge">${s.remaining === 0 ? 'Empty spool' : '↘ Low stock'}</span>` : ''}<div class="spool-art" aria-hidden="true"></div></div><div class="card-body"><p class="card-brand">${escapeHtml(s.brand)}<span class="list-material">${escapeHtml(s.material)}</span></p><h3 title="${escapeHtml(s.name)}"><button class="summary-trigger" data-action="summary" data-id="${escapeHtml(s.id)}" aria-haspopup="dialog" title="View filament summary">${escapeHtml(s.name)}</button></h3><div class="card-meta"><span class="color-dot"></span>${escapeHtml(s.colorName)} <span>·</span> ${escapeHtml(s.diameter)} mm</div><div class="remaining-label"><strong>${format(s.remaining)} <small>/ ${format(s.total)} g</small></strong><span>${percent}% left</span></div><div class="progress ${low ? 'low' : ''}" role="meter" aria-label="Filament remaining" aria-valuemin="0" aria-valuemax="${s.total}" aria-valuenow="${s.remaining}"><span style="width:${percent}%"></span></div><p class="card-location">⌑ &nbsp;${escapeHtml(s.location || 'No location set')}</p><div class="card-actions"><button class="button" data-action="log" data-id="${escapeHtml(s.id)}" ${s.remaining <= 0 ? 'disabled' : ''}>＋ Log print</button><button class="icon-button" data-action="edit" data-id="${escapeHtml(s.id)}" title="Edit filament" aria-label="Edit ${escapeHtml(s.name)}">✎</button><button class="icon-button" data-action="delete" data-id="${escapeHtml(s.id)}" title="Delete filament" aria-label="Delete ${escapeHtml(s.name)}">×</button></div></div></article>`;
   }).join('');
+}
+let summarySpoolId = null;
+function openSummary(id) {
+  const spool = state.spools.find(s => s.id === id);
+  if (!spool) return;
+  summarySpoolId = id;
+  const percent = Math.round(spool.remaining / spool.total * 100);
+  const prints = state.prints.filter(p => p.spoolId === id);
+  const status = spool.remaining === 0 ? 'Empty spool' : spool.remaining / spool.total <= .2 ? 'Low stock' : 'In stock';
+  const details = [
+    ['Brand', spool.brand], ['Material', spool.material],
+    ['Color', spool.colorName], ['Diameter', `${spool.diameter} mm`],
+    ['Location', spool.location || 'No location set'],
+    ['Prints logged', String(prints.length)],
+    ['Used in logged prints', `${format(prints.reduce((sum, p) => sum + p.grams, 0))} g`],
+    ['Added', new Date(spool.createdAt).toLocaleDateString()]
+  ];
+  $('#summary-title').textContent = spool.name;
+  $('#summary-content').innerHTML = `<div class="summary-stock" style="--spool-color:${spool.color}"><span class="summary-swatch" aria-hidden="true"></span><div><strong>${format(spool.remaining)} g remaining</strong><p>of ${format(spool.total)} g · ${percent}% left · ${status}</p></div></div><div class="progress ${spool.remaining / spool.total <= .2 ? 'low' : ''}" role="meter" aria-label="Filament remaining" aria-valuemin="0" aria-valuemax="${spool.total}" aria-valuenow="${spool.remaining}"><span style="width:${percent}%"></span></div><dl class="summary-details">${details.map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl><div class="summary-notes"><h3>Notes</h3><p>${escapeHtml(spool.notes || 'No notes added.')}</p></div>`;
+  $('#summary-log').disabled = spool.remaining <= 0;
+  $('#summary-dialog').showModal();
+}
+function openUsage(spool) {
+  $('#usage-form').reset(); $('#usage-error').textContent = ''; $('#usage-spool-id').value = spool.id;
+  $('#usage-summary').textContent = `${spool.name} · ${format(spool.remaining)} g available`;
+  $('#usage-form').elements.grams.max = spool.remaining; $('#usage-form').elements.date.value = today(); $('#usage-form').elements.date.max = today(); $('#usage-dialog').showModal();
+}
+for (const action of ['edit', 'log']) {
+  $('#summary-' + action).addEventListener('click', () => {
+    if (saving || loading || revision === null) return;
+    const spool = state.spools.find(s => s.id === summarySpoolId);
+    if (!spool || (action === 'log' && spool.remaining <= 0)) return;
+    $('#summary-dialog').close();
+    if (action === 'edit') openSpool(spool.id); else openUsage(spool);
+  });
 }
 function setInventoryView(view, persist = true) {
   inventoryView = view === 'list' ? 'list' : 'grid';
@@ -230,13 +265,18 @@ $('#usage-form').addEventListener('submit', async event => {
 });
 $('#spool-grid').addEventListener('click', async event => {
   if (saving || loading || revision === null) return;
-  const button = event.target.closest('[data-action]'); if (!button) return;
+  const button = event.target.closest('[data-action]');
+  if (!button) {
+    const card = event.target.closest('[data-spool-id]');
+    if (card) openSummary(card.dataset.spoolId);
+    return;
+  }
+  if (button.disabled) return;
   const spool = state.spools.find(s => s.id === button.dataset.id); if (!spool) return;
   if (button.dataset.action === 'edit') openSpool(spool.id);
+  if (button.dataset.action === 'summary') openSummary(spool.id);
   if (button.dataset.action === 'log') {
-    $('#usage-form').reset(); $('#usage-error').textContent = ''; $('#usage-spool-id').value = spool.id;
-    $('#usage-summary').textContent = `${spool.name} · ${format(spool.remaining)} g available`;
-    $('#usage-form').elements.grams.max = spool.remaining; $('#usage-form').elements.date.value = today(); $('#usage-form').elements.date.max = today(); $('#usage-dialog').showModal();
+    openUsage(spool);
   }
   if (button.dataset.action === 'delete' && await confirmAction('Delete this filament?', `Remove “${spool.name}” from your collection? Its print history will be kept.`, 'Delete filament')) {
     state.spools = state.spools.filter(s => s.id !== spool.id); if (!await save()) return; render(); toast('Filament removed. Print history retained.');
@@ -253,6 +293,20 @@ $('#history-list').addEventListener('click', async event => {
   state.prints = state.prints.filter(p => p.id !== print.id); if (!await save()) return; render(); toast('Print log undone.');
 });
 document.querySelectorAll('.close-dialog').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+function dismissOnBackdrop(dialog) {
+  let startedOutside = false;
+  const isOutside = event => {
+    const bounds = dialog.getBoundingClientRect();
+    return event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom);
+  };
+  dialog.addEventListener('pointerdown', event => { startedOutside = isOutside(event); });
+  dialog.addEventListener('pointercancel', () => { startedOutside = false; });
+  dialog.addEventListener('click', event => {
+    if (startedOutside && isOutside(event) && !saving) dialog.close('cancel');
+    startedOutside = false;
+  });
+}
+document.querySelectorAll('dialog').forEach(dismissOnBackdrop);
 document.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => setPage(button.dataset.page)));
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setInventoryView(button.dataset.view)));
 $('.brand').addEventListener('click', () => setPage('inventory'));

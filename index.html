@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#172b27">
+  <meta name="theme-color" content="#25272a">
   <title>Spool — Filament Studio</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <script src="theme.js"></script>
@@ -34,7 +34,11 @@
   </aside>
   <main>
     <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong id="breadcrumb">Filament
-          inventory</strong></span><div class="topbar-actions"><span class="studio-tag"><i></i> READY TO CREATE</span><button type="button" id="theme-toggle" class="button secondary" aria-label="Dark mode" aria-pressed="false">☾ Dark mode</button></div></header>
+          inventory</strong></span>
+      <div class="topbar-actions"><span class="studio-tag"><i></i> READY TO CREATE</span><button type="button"
+          id="theme-toggle" class="button secondary" aria-label="Dark mode" aria-pressed="false">☾ Dark mode</button>
+      </div>
+    </header>
     <div class="content">
       <section class="page-heading">
         <div>
@@ -67,17 +71,21 @@
         <div class="section-heading">
           <h2>Filament library <span id="library-count">0</span></h2>
           <div class="view-switcher" role="group" aria-label="Filament layout">
-            <button type="button" class="view-button" data-view="grid" aria-label="Grid view" title="Grid view">▦ <span>Grid</span></button>
-            <button type="button" class="view-button" data-view="list" aria-label="List view" title="List view">☷ <span>List</span></button>
+            <button type="button" class="view-button" data-view="grid" aria-label="Grid view" title="Grid view">▦
+              <span>Grid</span></button>
+            <button type="button" class="view-button" data-view="list" aria-label="List view" title="List view">☷
+              <span>List</span></button>
           </div>
         </div>
         <div class="toolbar"><label class="search"><span>⌕</span><input id="search" type="search"
               placeholder="Search filament, brand, or location…" aria-label="Search filament"></label><select
             id="material-filter" aria-label="Filter material">
             <option value="">All materials</option>
-          </select><select id="brand-filter" aria-label="Filter brand"><option value="">All brands</option></select>
-          
-          
+          </select><select id="brand-filter" aria-label="Filter brand">
+            <option value="">All brands</option>
+          </select>
+
+
           <select id="sort" aria-label="Sort inventory">
             <option value="newest">Newest first</option>
             <option value="name">Name A–Z</option>
@@ -87,7 +95,8 @@
             <option value="name-desc">Name Z–A</option>
             <option value="brand">Brand A–Z</option>
             <option value="material">Material A–Z</option>
-          </select><button type="button" id="reset-filters" class="button secondary" hidden>Clear filters</button></div>
+          </select><button type="button" id="reset-filters" class="button secondary" hidden>Clear filters</button>
+        </div>
         <div id="spool-grid" class="spool-grid"></div>
         <div id="empty-state" class="empty-state" hidden>
           <div class="empty-icon">◎</div>
@@ -113,6 +122,20 @@
       <footer><span>Made for the things you’ll make.</span><span>SPOOL / FILAMENT STUDIO</span></footer>
     </div>
   </main>
+  <dialog id="summary-dialog" aria-labelledby="summary-title">
+    <div class="dialog-heading">
+      <div>
+        <p class="eyebrow">Filament summary</p>
+        <h2 id="summary-title"></h2>
+      </div>
+      <button type="button" class="icon-button close-dialog" aria-label="Close summary" autofocus>×</button>
+    </div>
+    <div id="summary-content"></div>
+    <div class="dialog-footer">
+      <button type="button" class="button secondary" id="summary-edit">Edit filament</button>
+      <button type="button" class="button" id="summary-log">＋ Log print</button>
+    </div>
+  </dialog>
   <dialog id="spool-dialog">
     <form id="spool-form">
       <div class="dialog-heading">

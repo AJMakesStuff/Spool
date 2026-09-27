@@ -52,6 +52,7 @@ Rebuilding the image or running `docker compose down` preserves the volume. **Do
 - In Add/Edit filament, use **Update from a scale** to enter the measured weight (spool plus filament) and empty spool weight. Remaining filament is calculated automatically and applied on save. For example, 875 g measured minus a 250 g empty spool leaves 625 g filament. The empty spool weight is remembered for future measurements. The last scale reading is shown separately; editing a spool later does not reapply an old reading after prints have used filament. Leave measured weight blank to enter remaining filament manually.
 - Log completed prints to deduct filament automatically; undo a log to restore its weight.
 - Switch between grid cards and a compact list with smaller previews and tighter spacing.
+- Click a filament card or list row to open its quick summary, including stock, details, notes, and logged usage, with shortcuts to edit or log a print. Keyboard users can activate the filament name; Escape closes the summary.
 - Search your collection and combine material and brand filters. Clear filters with one click.
 - Sort by name, remaining grams, or date added in either direction, or group alphabetically by brand or material.
 - Stock cards flag spools at or below 20% remaining and label empty spools.
