@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Spool — Filament Studio",
+  "short_name": "Spool",
+  "description": "Manage your filament inventory and print history.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#25272a",
+  "theme_color": "#25272a",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

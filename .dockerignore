@@ -7,3 +7,5 @@
 !data.js
 !server.cjs
 !theme.js
+!service-worker.js
+!manifest.json

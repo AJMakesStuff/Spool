@@ -30,6 +30,12 @@ docker compose up -d --build
 
 Port 3000 is available on the PC's network interfaces. On another device on the same network, open `http://<PC-IP>:3000`. Use `ipconfig` on Windows to find the IPv4 address of your active Ethernet or Wi-Fi adapter. If needed, allow inbound TCP port 3000 on your private network. To change the port, edit the first number in `3000:8080` in `compose.yaml`.
 
+### Install as an app
+
+Spool includes a PWA manifest and service worker. On HTTPS or localhost, use your browser's install option where supported. Access from another device using a plain HTTP LAN address does not enable the service worker; use HTTPS for PWA support on those devices.
+
+After an initial online visit and service worker activation, the app shell can load offline. Inventory and print history still require a connection to the shared server; offline edits are not queued. When changing app shell files, bump `CACHE_NAME` in `service-worker.js`. Close all Spool tabs/windows and reopen after an update has downloaded to activate it.
+
 ### Shared storage
 
 Inventory and print history are stored in `/data/inventory.json` inside the named Docker volume `spool-data` (Compose prefixes the volume name with the project name). Every browser connecting to this server uses the same collection. Open pages check for changes every five seconds when a dialog is not being edited, and update only when the shared inventory has changed. If two browsers edit the same inventory version, the second save is rejected and must be retried after refreshing, preventing silent overwrites.
