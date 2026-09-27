@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#172b27">
   <title>Spool — Filament Studio</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <script src="theme.js"></script>
   <link rel="stylesheet" href="styles.css">
   <script src="data.js" defer></script>
   <script src="app.js" defer></script>
@@ -33,7 +34,7 @@
   </aside>
   <main>
     <header class="topbar"><span>Workspace <span class="breadcrumb">/</span> <strong id="breadcrumb">Filament
-          inventory</strong></span><span class="studio-tag"><i></i> READY TO CREATE</span></header>
+          inventory</strong></span><div class="topbar-actions"><span class="studio-tag"><i></i> READY TO CREATE</span><button type="button" id="theme-toggle" class="button secondary" aria-label="Dark mode" aria-pressed="false">☾ Dark mode</button></div></header>
     <div class="content">
       <section class="page-heading">
         <div>
@@ -65,22 +66,28 @@
       <section id="inventory-page">
         <div class="section-heading">
           <h2>Filament library <span id="library-count">0</span></h2>
-          <div class="view-label">▦ &nbsp; Collection view</div>
+          <div class="view-switcher" role="group" aria-label="Filament layout">
+            <button type="button" class="view-button" data-view="grid" aria-label="Grid view" title="Grid view">▦ <span>Grid</span></button>
+            <button type="button" class="view-button" data-view="list" aria-label="List view" title="List view">☷ <span>List</span></button>
+          </div>
         </div>
         <div class="toolbar"><label class="search"><span>⌕</span><input id="search" type="search"
               placeholder="Search filament, brand, or location…" aria-label="Search filament"></label><select
             id="material-filter" aria-label="Filter material">
             <option value="">All materials</option>
-          </select><select id="stock-filter" aria-label="Filter stock">
-            <option value="">All stock levels</option>
-            <option value="healthy">In stock</option>
-            <option value="low">Low stock</option>
-            <option value="empty">Empty</option>
-          </select><select id="sort" aria-label="Sort inventory">
+          </select><select id="brand-filter" aria-label="Filter brand"><option value="">All brands</option></select>
+          
+          
+          <select id="sort" aria-label="Sort inventory">
             <option value="newest">Newest first</option>
             <option value="name">Name A–Z</option>
-            <option value="remaining">Least remaining</option>
-          </select></div>
+            <option value="remaining">Least remaining (g)</option>
+            <option value="remaining-desc">Most remaining (g)</option>
+            <option value="oldest">Oldest first</option>
+            <option value="name-desc">Name Z–A</option>
+            <option value="brand">Brand A–Z</option>
+            <option value="material">Material A–Z</option>
+          </select><button type="button" id="reset-filters" class="button secondary" hidden>Clear filters</button></div>
         <div id="spool-grid" class="spool-grid"></div>
         <div id="empty-state" class="empty-state" hidden>
           <div class="empty-icon">◎</div>

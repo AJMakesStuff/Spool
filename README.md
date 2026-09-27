@@ -51,8 +51,10 @@ Rebuilding the image or running `docker compose down` preserves the volume. **Do
 - Track original and remaining filament weight in grams. Enter filament weight excluding the empty spool.
 - In Add/Edit filament, use **Update from a scale** to enter the measured weight (spool plus filament) and empty spool weight. Remaining filament is calculated automatically and applied on save. For example, 875 g measured minus a 250 g empty spool leaves 625 g filament. The empty spool weight is remembered for future measurements. The last scale reading is shown separately; editing a spool later does not reapply an old reading after prints have used filament. Leave measured weight blank to enter remaining filament manually.
 - Log completed prints to deduct filament automatically; undo a log to restore its weight.
-- Search your collection, filter material and stock level, and sort by name, weight, or date added.
-- Stock cards flag spools at or below 20% remaining; empty spools have their own filter.
+- Switch between grid cards and a compact list with smaller previews and tighter spacing.
+- Search your collection and combine material and brand filters. Clear filters with one click.
+- Sort by name, remaining grams, or date added in either direction, or group alphabetically by brand or material.
+- Stock cards flag spools at or below 20% remaining and label empty spools.
 - Review print history, including records for deleted spools.
 - Export and restore JSON backups. Restoring a backup replaces the current collection and history.
 - Optionally load clearly labeled sample inventory from the initial empty screen.
@@ -74,3 +76,5 @@ node server.cjs
 Open `http://localhost:8080`. By default, local server data goes into the ignored `data/` directory. `DATA_DIR` and `PORT` can override these defaults. The Docker image sets `DATA_DIR=/data` and `PORT=8080`.
 
 Run `node --check app.js` for syntax validation and `node --test app.test.cjs server.test.cjs` for client workflows, persistence, validation, and concurrent-save tests. `data.js` provides shared browser/server validation. All visual assets are available offline.
+
+The header includes a dark mode toggle. It initially follows your system theme and remembers your choice on this browser.

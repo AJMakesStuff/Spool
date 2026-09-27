@@ -1678,3 +1678,305 @@ body:has(dialog[open]) {
     min-height: 44px;
   }
 }
+
+/* Filament collection layout switcher and list view. */
+.view-switcher {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #eef1ea;
+}
+
+.view-button {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #7a8577;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.view-button span {
+  margin-left: 4px;
+}
+
+.view-button:hover {
+  color: #41553f;
+}
+
+.view-button.active {
+  background: #fff;
+  color: #415b42;
+  box-shadow: 0 1px 4px #263c2c18;
+}
+
+.view-button:focus-visible {
+  outline: 2px solid #8fa981;
+  outline-offset: 2px;
+}
+
+.spool-grid.list-view {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.list-view .spool-card {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+}
+
+.list-view .spool-card:hover {
+  transform: translateY(-1px);
+}
+
+.list-view .spool-visual {
+  height: auto;
+  min-height: 112px;
+}
+
+.list-view .spool-art {
+  width: 68px;
+  height: 68px;
+}
+
+.list-view .spool-art:before {
+  inset: 14px;
+}
+
+.list-view .card-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(140px, 1fr) auto;
+  grid-template-rows: auto auto auto 1fr;
+  column-gap: 16px;
+  align-items: center;
+  padding: 10px 14px;
+}
+
+.list-view .card-brand {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.list-view .card-body h3 {
+  grid-column: 1;
+  grid-row: 2;
+  margin-bottom: 3px;
+}
+
+.list-view .card-meta {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.list-view .card-location {
+  grid-column: 1;
+  grid-row: 4;
+  align-self: end;
+  margin: 5px 0 0;
+}
+
+.list-view .remaining-label {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  margin: 0;
+}
+
+.list-view .progress {
+  grid-column: 2;
+  grid-row: 3;
+  width: 100%;
+  margin: 8px 0 0;
+}
+
+.list-view .card-actions {
+  grid-column: 3;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  align-items: center;
+  padding: 0 0 0 12px;
+  border-top: 0;
+  border-left: 1px solid #eef0eb;
+}
+
+.list-view .card-actions .button {
+  min-width: 92px;
+}
+
+@media (max-width: 900px) {
+  .list-view .spool-card {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+
+  .list-view .card-body {
+    grid-template-columns: minmax(0, 1fr) minmax(145px, .8fr);
+    column-gap: 20px;
+  }
+
+  .list-view .card-actions {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    margin-top: 7px;
+    padding: 6px 0 0;
+    border-left: 0;
+    border-top: 1px solid #eef0eb;
+  }
+}
+
+@media (max-width: 600px) {
+  .view-button {
+    min-width: 44px;
+    min-height: 40px;
+    font-size: 14px;
+  }
+
+  .view-button span {
+    display: none;
+  }
+
+  .list-view .spool-card {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+
+  .list-view .spool-visual {
+    min-height: 0;
+  }
+
+  .list-view .spool-art {
+    width: 66px;
+    height: 66px;
+    border-width: 6px;
+    transform: rotate(-24deg) scaleX(.82);
+  }
+
+  .list-view .spool-art:before {
+    inset: 14px;
+    border-width: 6px;
+  }
+
+  .list-view .spool-art:after,
+  .list-view .spool-visual:after {
+    display: none;
+  }
+
+  .list-view .material-badge {
+    left: 7px;
+    top: 7px;
+    max-width: calc(100% - 14px);
+  }
+
+  .list-view .stock-badge {
+    left: 7px;
+    right: auto;
+    top: auto;
+    bottom: 7px;
+  }
+
+  .list-view .card-body {
+    display: block;
+    padding: 10px;
+  }
+
+  .list-view .card-brand,
+  .list-view .card-body h3 {
+    margin-bottom: 5px;
+  }
+
+  .list-view .remaining-label {
+    margin-top: 7px;
+  }
+
+  .list-view .progress {
+    margin: 5px 0 7px;
+  }
+
+  .list-view .card-location {
+    margin: 0 0 7px;
+  }
+
+  .list-view .card-actions {
+    margin-top: 0;
+    padding-top: 10px;
+  }
+
+  .list-view .card-actions .button {
+    min-width: 0;
+  }
+}
+
+/* Wrapping collection filters and compact list details. */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.toolbar .search { flex: 1 1 250px; }
+.toolbar select { flex: 1 1 145px; min-width: 0; max-width: 100%; }
+.list-view .material-badge { top: 6px; left: 6px; }
+.list-view .stock-badge { top: auto; bottom: 6px; left: 6px; right: auto; }
+.list-view .spool-art, .list-view .spool-art:before { border-width: 6px; }
+.list-view .spool-art:after, .list-view .spool-visual:after { display: none; }
+.list-view .card-actions { margin-bottom: 0; }
+.list-view .card-brand { margin-bottom: 3px; }
+@media (max-width: 600px) {
+  .toolbar .search { flex-basis: 100%; }
+  .toolbar select { flex-basis: calc(50% - 8px); }
+  .list-view .card-actions .icon-button { min-width: 36px; }
+}
+
+/* List material sits with the brand, clear of the spool illustration. */
+.list-material { display: none; }
+.list-view .spool-visual .material-badge { display: none; }
+.list-view .card-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.list-view .list-material {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #eef1ea;
+  color: #415b42;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .3px;
+}
+
+/* Theme controls and dark surfaces. Filament swatches retain their actual colors. */
+:root { color-scheme: light; }
+.topbar-actions { display: flex; align-items: center; gap: 16px; }
+#theme-toggle { min-height: 36px; padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+:root[data-theme="dark"] { color-scheme: dark; background: #111b17; color: #e3ebe5; --green: #426e54; --muted: #acb9ae; --border: #36483c; }
+[data-theme="dark"] .sidebar { background: #101e18; }
+[data-theme="dark"] :is(.topbar, .stat, .spool-card, .history-row, dialog, .search, .toolbar select, .icon-button, .button.secondary) { background: #1c2a22; color: #e3ebe5; border-color: var(--border); }
+[data-theme="dark"] :is(.topbar strong, .remaining-label strong) { color: #e3ebe5; }
+[data-theme="dark"] :is(.stat p, .stat small, .stat-caption, .eyebrow, .card-brand, .card-meta, .card-location, .remaining-label, .remaining-label small, .history-details p, .history-weight small, footer, .optional, .section-heading>p, .weight-measurement p, #color-help, .view-button, .form-grid small) { color: #acb9ae; }
+[data-theme="dark"] :is(.stat-icon, .section-heading h2 span, .view-switcher, .weight-measurement, .usage-summary, .history-symbol, .empty-state) { background: #23372a; color: #b8d4a9; border-color: var(--border); }
+[data-theme="dark"] .spool-visual {
+  background: radial-gradient(ellipse at 50% 42%, #738078 0%, #505e55 65%, #3c4b42 100%);
+}
+[data-theme="dark"] .spool-art {
+  border-color: #85938a;
+  box-shadow: 12px 6px 0 #46564b, 13px 6px 0 2px #a2b0a6, 0 0 0 1px #b9c7bd,
+    inset 0 0 0 3px #ffffff40, inset 3px 4px 8px #00000025;
+}
+[data-theme="dark"] .color-dot { border-color: #a2b0a6; }
+[data-theme="dark"] .spool-art:before {
+  background: #56665b;
+  border-color: #91a096;
+  box-shadow: inset 5px 2px 0 #00000038, 0 0 0 2px #c0cdc366;
+}
+[data-theme="dark"] :is(.material-badge, .list-material) { background: #324738; color: #e0eed9; border-color: #48634e; }
+[data-theme="dark"] .stock-badge { background: #4b3b20; color: #f1ce83; }
+[data-theme="dark"] .progress { background: #35463a; }
+[data-theme="dark"] .card-actions { border-color: var(--border); }
+[data-theme="dark"] :is(.card-actions .button, .view-button.active) { background: #354f3b; color: #e0eed9; }
+[data-theme="dark"] :is(input, select, textarea) { background: #152119; color: #e3ebe5; border-color: #48604f; }
+[data-theme="dark"] input[readonly] { background: #29392d; color: #b9c6bc; }
+[data-theme="dark"] ::placeholder { color: #9baa9f; opacity: 1; }
+[data-theme="dark"] :is(.button.secondary:hover, .icon-button:hover, .card-actions .button:hover, .view-button:hover) { background: #3a5140; color: #f1f6ef; }
+[data-theme="dark"] .text-button { color: #b8d4a9; }
+[data-theme="dark"] .form-error { color: #ffb19b; }
+[data-theme="dark"] .warning { background: #493a22; color: #f5d9a3; border-color: #80643a; }
+[data-theme="dark"] .toast { background: #35533c; color: #f1f6ef; }
+@media (max-width: 600px) {
+  .topbar-actions { gap: 6px; }
+  #theme-toggle { min-height: 44px; }
+}

@@ -9,6 +9,10 @@ const uid = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.ran
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 let state = { version: 1, spools: [], prints: [] };
 let page = 'inventory';
+let inventoryView = (() => {
+  try { return localStorage.getItem('spool-inventory-view') === 'list' ? 'list' : 'grid'; }
+  catch { return 'grid'; }
+})();
 let toastTimer;
 let revision = null;
 let committed = JSON.stringify(state);
@@ -20,6 +24,7 @@ function storageWarning(message) {
 }
 function lockControls() {
   document.querySelectorAll('button, input, select, textarea').forEach(control => {
+    if (control.id === 'theme-toggle') return;
     if (saving || revision === null) {
       if (!control.hasAttribute('data-storage-lock')) { control.dataset.storageLock = String(control.disabled); control.disabled = true; }
     } else if (control.hasAttribute('data-storage-lock')) {
@@ -35,6 +40,8 @@ async function refreshState() {
     const response = await fetch('/api/state', { cache: 'no-store' });
     if (!response.ok) throw Error('Unable to load shared inventory. Check the server connection.');
     const result = await response.json();
+    // A save may have completed while this request was in flight. Never let an
+    // older refresh replace that newer local result.
     if (saving || revision !== refreshRevision) return;
     if (result.revision !== revision) {
       state = validateData(result.data); revision = result.revision; committed = JSON.stringify(state);
@@ -77,16 +84,48 @@ function render() {
   renderInventory(); renderHistory();
 }
 function renderInventory() {
-  const query = $('#search').value.toLowerCase().trim(), material = $('#material-filter').value, stock = $('#stock-filter').value;
-  let spools = state.spools.filter(s => (!query || [s.name, s.brand, s.material, s.colorName, s.location, s.notes].some(v => v.toLowerCase().includes(query))) && (!material || s.material === material) && (!stock || (stock === 'empty' ? s.remaining === 0 : stock === 'low' ? s.remaining > 0 && s.remaining / s.total <= .2 : s.remaining / s.total > .2)));
-  spools.sort((a, b) => $('#sort').value === 'name' ? a.name.localeCompare(b.name) : $('#sort').value === 'remaining' ? a.remaining - b.remaining : b.createdAt - a.createdAt);
+  for (const [id, field, label] of [['brand-filter', 'brand', 'All brands']]) {
+    const control = $('#' + id), selected = control.value;
+    const values = [...new Set(state.spools.map(s => s[field]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    control.innerHTML = '<option value="">' + label + '</option>' + values.map(value => '<option value="' + escapeHtml(value) + '">' + escapeHtml(value) + '</option>').join('');
+    control.value = values.includes(selected) ? selected : '';
+  }
+  const query = $('#search').value.toLowerCase().trim(), material = $('#material-filter').value;
+  let spools = state.spools.filter(s => (!$('#brand-filter').value || s.brand === $('#brand-filter').value) && (!query || [s.name, s.brand, s.material, s.colorName, s.location, s.notes].some(v => v.toLowerCase().includes(query))) && (!material || s.material === material));
+  const sorts = {
+    newest: (a, b) => b.createdAt - a.createdAt,
+    oldest: (a, b) => a.createdAt - b.createdAt,
+    name: (a, b) => a.name.localeCompare(b.name),
+    'name-desc': (a, b) => b.name.localeCompare(a.name),
+    brand: (a, b) => a.brand.localeCompare(b.brand),
+    material: (a, b) => a.material.localeCompare(b.material),
+    remaining: (a, b) => a.remaining - b.remaining,
+    'remaining-desc': (a, b) => b.remaining - a.remaining
+  };
+  const compare = sorts[$('#sort').value] || sorts.newest;
+  spools.sort((a, b) => compare(a, b) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+  $('#reset-filters').hidden = !['search', 'material-filter', 'brand-filter'].some(id => $('#' + id).value);
   $('#library-count').textContent = spools.length;
   $('#empty-state').hidden = state.spools.length !== 0;
   $('#no-results').hidden = state.spools.length === 0 || spools.length !== 0;
   $('#spool-grid').innerHTML = spools.map(s => {
     const percent = Math.round(s.remaining / s.total * 100), low = s.remaining / s.total <= .2;
-    return `<article class="spool-card" style="--spool-color:${s.color}"><div class="spool-visual"><span class="material-badge">${escapeHtml(s.material)}</span>${low ? `<span class="stock-badge">${s.remaining === 0 ? 'Empty spool' : '↘ Low stock'}</span>` : ''}<div class="spool-art" aria-hidden="true"></div></div><div class="card-body"><p class="card-brand">${escapeHtml(s.brand)}</p><h3 title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</h3><div class="card-meta"><span class="color-dot"></span>${escapeHtml(s.colorName)} <span>·</span> ${escapeHtml(s.diameter)} mm</div><div class="remaining-label"><strong>${format(s.remaining)} <small>/ ${format(s.total)} g</small></strong><span>${percent}% left</span></div><div class="progress ${low ? 'low' : ''}" role="meter" aria-label="Filament remaining" aria-valuemin="0" aria-valuemax="${s.total}" aria-valuenow="${s.remaining}"><span style="width:${percent}%"></span></div><p class="card-location">⌑ &nbsp;${escapeHtml(s.location || 'No location set')}</p><div class="card-actions"><button class="button" data-action="log" data-id="${escapeHtml(s.id)}" ${s.remaining <= 0 ? 'disabled' : ''}>＋ Log print</button><button class="icon-button" data-action="edit" data-id="${escapeHtml(s.id)}" title="Edit filament" aria-label="Edit ${escapeHtml(s.name)}">✎</button><button class="icon-button" data-action="delete" data-id="${escapeHtml(s.id)}" title="Delete filament" aria-label="Delete ${escapeHtml(s.name)}">×</button></div></div></article>`;
+    return `<article class="spool-card" style="--spool-color:${s.color}"><div class="spool-visual"><span class="material-badge">${escapeHtml(s.material)}</span>${low ? `<span class="stock-badge">${s.remaining === 0 ? 'Empty spool' : '↘ Low stock'}</span>` : ''}<div class="spool-art" aria-hidden="true"></div></div><div class="card-body"><p class="card-brand">${escapeHtml(s.brand)}<span class="list-material">${escapeHtml(s.material)}</span></p><h3 title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</h3><div class="card-meta"><span class="color-dot"></span>${escapeHtml(s.colorName)} <span>·</span> ${escapeHtml(s.diameter)} mm</div><div class="remaining-label"><strong>${format(s.remaining)} <small>/ ${format(s.total)} g</small></strong><span>${percent}% left</span></div><div class="progress ${low ? 'low' : ''}" role="meter" aria-label="Filament remaining" aria-valuemin="0" aria-valuemax="${s.total}" aria-valuenow="${s.remaining}"><span style="width:${percent}%"></span></div><p class="card-location">⌑ &nbsp;${escapeHtml(s.location || 'No location set')}</p><div class="card-actions"><button class="button" data-action="log" data-id="${escapeHtml(s.id)}" ${s.remaining <= 0 ? 'disabled' : ''}>＋ Log print</button><button class="icon-button" data-action="edit" data-id="${escapeHtml(s.id)}" title="Edit filament" aria-label="Edit ${escapeHtml(s.name)}">✎</button><button class="icon-button" data-action="delete" data-id="${escapeHtml(s.id)}" title="Delete filament" aria-label="Delete ${escapeHtml(s.name)}">×</button></div></div></article>`;
   }).join('');
+}
+function setInventoryView(view, persist = true) {
+  inventoryView = view === 'list' ? 'list' : 'grid';
+  const grid = $('#spool-grid');
+  grid.classList.remove('list-view');
+  if (inventoryView === 'list') grid.classList.add('list-view');
+  document.querySelectorAll('[data-view]').forEach(button => {
+    const active = button.dataset.view === inventoryView;
+    button.classList[active ? 'add' : 'remove']('active');
+    button.ariaPressed = String(active);
+  });
+  if (persist) {
+    try { localStorage.setItem('spool-inventory-view', inventoryView); } catch { /* Preference storage is optional. */ }
+  }
 }
 function renderHistory() {
   $('#history-count').textContent = state.prints.length;
@@ -215,12 +254,18 @@ $('#history-list').addEventListener('click', async event => {
 });
 document.querySelectorAll('.close-dialog').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
 document.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => setPage(button.dataset.page)));
+document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setInventoryView(button.dataset.view)));
 $('.brand').addEventListener('click', () => setPage('inventory'));
 $('#add-spool').addEventListener('click', () => openSpool()); $('#empty-add').addEventListener('click', () => openSpool());
 $('#material-filter').innerHTML += MATERIALS.map(m => `<option>${m}</option>`).join('');
 $('#spool-form select[name="material"]').innerHTML = MATERIALS.map(m => `<option>${m}</option>`).join('');
-for (const id of ['search', 'material-filter', 'stock-filter', 'sort']) $('#' + id).addEventListener(id === 'search' ? 'input' : 'change', renderInventory);
-$('#clear-filters').addEventListener('click', () => { $('#search').value = ''; $('#material-filter').value = ''; $('#stock-filter').value = ''; renderInventory(); });
+for (const id of ['search', 'material-filter', 'brand-filter', 'sort']) $('#' + id).addEventListener(id === 'search' ? 'input' : 'change', renderInventory);
+function clearFilters() {
+  for (const id of ['search', 'material-filter', 'brand-filter']) $('#' + id).value = '';
+  renderInventory();
+}
+$('#clear-filters').addEventListener('click', clearFilters);
+$('#reset-filters').addEventListener('click', clearFilters);
 $('#export-btn').addEventListener('click', () => {
   downloadBackup(state);
 });
@@ -252,6 +297,7 @@ $('#load-demo').addEventListener('click', async () => {
   state.spools = samples.map((s, i) => ({ id: uid(), name: s[0], brand: s[1], material: s[2], colorName: s[3], color: s[4], total: 1000, remaining: s[5], location: s[6], diameter: '1.75', notes: 'Sample spool — edit or delete this to add your own inventory.', createdAt: Date.now() - i * 1000 }));
   if (!await save()) return; render(); toast('Sample collection added. You can edit or delete any spool.');
 });
+setInventoryView(inventoryView, false);
 render();
 lockControls();
 refreshState();
