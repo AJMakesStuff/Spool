@@ -44,6 +44,15 @@ test('shared inventory persists across server restarts and competing edits canno
     assert.equal((await fetch(running.url + '/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json', Origin: 'http://other.example' }, body: JSON.stringify({ revision: 1, data: inventory }) })).status, 403);
   } finally { if (running) await stop(running.server); fs.rmSync(dir, { recursive: true, force: true }); }
 });
+test('PUT rejects a null Origin header without modifying inventory', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-')); let running;
+  try {
+    running = await start(dir);
+    const response = await fetch(running.url + '/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json', Origin: 'null' }, body: JSON.stringify({ revision: 0, data: inventory }) });
+    assert.equal(response.status, 403);
+    assert.equal((await (await fetch(running.url + '/api/state')).json()).revision, 0);
+  } finally { if (running) await stop(running.server); fs.rmSync(dir, { recursive: true, force: true }); }
+});
 test('corrupt on-disk data fails startup instead of silently resetting inventory', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-'));
   try { fs.writeFileSync(path.join(dir, 'inventory.json'), '{broken'); assert.throws(() => createServer(dir)); }

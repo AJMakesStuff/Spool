@@ -26,7 +26,10 @@ function createServer(dataDir = process.env.DATA_DIR || path.join(__dirname, 'da
       if (pathname === '/api/state' && req.method === 'GET') return reply(res, 200, current);
       if (pathname === '/api/state' && req.method === 'PUT') {
         // Only JSON requests from this origin may mutate the shared collection.
-        if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return reply(res, 403, { error: 'Origin not allowed' });
+        if (req.headers.origin) {
+          try { if (new URL(req.headers.origin).host !== req.headers.host) return reply(res, 403, { error: 'Origin not allowed' }); }
+          catch { return reply(res, 403, { error: 'Origin not allowed' }); }
+        }
         if (req.headers['sec-fetch-site'] === 'cross-site') return reply(res, 403, { error: 'Origin not allowed' });
         if (req.headers['content-type']?.split(';')[0] !== 'application/json') return reply(res, 415, { error: 'JSON required' });
         let size = 0; const chunks = [];
