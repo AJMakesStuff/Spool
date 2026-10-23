@@ -49,3 +49,13 @@ test('corrupt on-disk data fails startup instead of silently resetting inventory
   try { fs.writeFileSync(path.join(dir, 'inventory.json'), '{broken'); assert.throws(() => createServer(dir)); }
   finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+test('rejects saves that would overflow the persisted revision', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-')); let running;
+  try {
+    fs.writeFileSync(path.join(dir, 'inventory.json'), JSON.stringify({ revision: Number.MAX_SAFE_INTEGER, data: inventory }));
+    running = await start(dir);
+    assert.equal((await put(running.url, Number.MAX_SAFE_INTEGER, inventory)).status, 409);
+    await stop(running.server); running = null;
+    assert.doesNotThrow(() => createServer(dir));
+  } finally { if (running) await stop(running.server); fs.rmSync(dir, { recursive: true, force: true }); }
+});
