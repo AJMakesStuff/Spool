@@ -31,7 +31,7 @@ function createServer(dataDir = process.env.DATA_DIR || path.join(__dirname, 'da
           catch { return reply(res, 403, { error: 'Origin not allowed' }); }
         }
         if (req.headers['sec-fetch-site'] === 'cross-site') return reply(res, 403, { error: 'Origin not allowed' });
-        if (req.headers['content-type']?.split(';')[0] !== 'application/json') return reply(res, 415, { error: 'JSON required' });
+        if (req.headers['content-type']?.split(';')[0].toLowerCase() !== 'application/json') return reply(res, 415, { error: 'JSON required' });
         let size = 0; const chunks = [];
         for await (const chunk of req) {
           size += chunk.length;
