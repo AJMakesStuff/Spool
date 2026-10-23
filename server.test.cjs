@@ -20,6 +20,14 @@ test('state updates accept case-insensitive JSON content types', async () => {
     assert.equal((await put(running.url, 0, inventory, 'Application/JSON; charset=utf-8')).status, 200);
   } finally { if (running) await stop(running.server); fs.rmSync(dir, { recursive: true, force: true }); }
 });
+test('state updates reject prints dated in the future', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-')); let running;
+  try {
+    running = await start(dir);
+    const futurePrint = { id: 'future', spoolId: spool.id, spoolName: spool.name, name: 'Future print', grams: 1, date: '2999-12-31', notes: '', createdAt: 1 };
+    assert.equal((await put(running.url, 0, { ...inventory, prints: [futurePrint] })).status, 400);
+  } finally { if (running) await stop(running.server); fs.rmSync(dir, { recursive: true, force: true }); }
+});
 test('shared inventory persists across server restarts and competing edits cannot overwrite it', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-')); let running;
   try {
