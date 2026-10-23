@@ -12,7 +12,14 @@ async function start(dir) {
   return { server, url: `http://127.0.0.1:${server.address().port}` };
 }
 async function stop(server) { await new Promise(resolve => server.close(resolve)); }
-const put = (url, revision, data) => fetch(url + '/api/state', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ revision, data }) });
+const put = (url, revision, data, contentType = 'application/json') => fetch(url + '/api/state', { method: 'PUT', headers: { 'Content-Type': contentType }, body: JSON.stringify({ revision, data }) });
+test('state updates accept case-insensitive JSON content types', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-')); let running;
+  try {
+    running = await start(dir);
+    assert.equal((await put(running.url, 0, inventory, 'Application/JSON; charset=utf-8')).status, 200);
+  } finally { if (running) await stop(running.server); fs.rmSync(dir, { recursive: true, force: true }); }
+});
 test('shared inventory persists across server restarts and competing edits cannot overwrite it', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-')); let running;
   try {
