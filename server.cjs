@@ -42,6 +42,7 @@ function createServer(dataDir = process.env.DATA_DIR || path.join(__dirname, 'da
         try { input = JSON.parse(Buffer.concat(chunks).toString()); data = validateData(input.data); }
         catch { return reply(res, 400, { error: 'Invalid inventory data' }); }
         if (input.revision !== current.revision) return reply(res, 409, { error: 'Inventory changed. Reload before saving.' });
+        if (current.revision === Number.MAX_SAFE_INTEGER) return reply(res, 409, { error: 'Revision limit reached' });
         const next = { revision: current.revision + 1, data };
         // Synchronous commit serializes competing requests. Rename is atomic on the volume.
         const temp = file + '.tmp';
