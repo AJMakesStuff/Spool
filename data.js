@@ -12,6 +12,7 @@ const MATERIALS = [
 function validateData(data) {
   const string = (v, max) => typeof v === 'string' && v.length <= max;
   const finite = (v, min, max) => typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max;
+  const now = new Date(), today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   if (!data || data.version !== 1 || !Array.isArray(data.spools) || !Array.isArray(data.prints) || data.spools.length > 10000 || data.prints.length > 100000) throw Error('This is not a supported Spool backup.');
   const spoolIds = new Set(), printIds = new Set();
   for (const s of data.spools) {
@@ -21,7 +22,7 @@ function validateData(data) {
     spoolIds.add(s.id);
   }
   for (const p of data.prints) {
-    if (!p || !string(p.id, 100) || !p.id || printIds.has(p.id) || !string(p.spoolId, 100) || !string(p.spoolName, 80) || !string(p.name, 100) || !p.name.trim() || !finite(p.grams, 0.1, 100000) || !string(p.date, 10) || !/^\d{4}-\d{2}-\d{2}$/.test(p.date) || !Number.isFinite(Date.parse(p.date)) || new Date(p.date).toISOString().slice(0, 10) !== p.date || !string(p.notes, 1000) || !finite(p.createdAt, 0, 1e15)) throw Error('The backup contains invalid print history.');
+    if (!p || !string(p.id, 100) || !p.id || printIds.has(p.id) || !string(p.spoolId, 100) || !string(p.spoolName, 80) || !string(p.name, 100) || !p.name.trim() || !finite(p.grams, 0.1, 100000) || !string(p.date, 10) || !/^\d{4}-\d{2}-\d{2}$/.test(p.date) || !Number.isFinite(Date.parse(p.date)) || new Date(p.date).toISOString().slice(0, 10) !== p.date || p.date > today || !string(p.notes, 1000) || !finite(p.createdAt, 0, 1e15)) throw Error('The backup contains invalid print history.');
     printIds.add(p.id);
   }
   return { version: 1, spools: data.spools, prints: data.prints };
